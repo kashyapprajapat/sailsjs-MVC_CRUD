@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Employee Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center; /* Center align all text */
+            background-color: #f0f0f0; /* Light background color */
+            padding: 20px;
+        }
+        header, footer {
+            background-color: #333; /* Dark background color for header and footer */
+            color: white; /* White text color */
+            padding: 10px;
+        }
+        header {
+            margin-bottom: 20px; /* Space below header */
+        }
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 10px 0; /* Padding inside footer */
+        }
+        .content {
+            margin: 0 auto; /* Center align main content */
+            max-width: 800px; /* Maximum width for content */
+            background-color: white; /* White background color for content area */
+            padding: 20px;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for content box */
+        }
+        h1 {
+            margin-bottom: 20px; /* Space below headings */
+        }
+        h2 {
+            display: flex; /* Use flexbox for alignment */
+            justify-content: space-between; /* Space between heading and button */
+            align-items: center; /* Center align items vertically */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Collapse table borders */
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center; /* Center align table cells */
+            border: 1px solid #ddd; /* Light gray border */
+        }
+        th {
+            background-color: #f2f2f2; /* Light gray background for table headers */
+        }
+        form {
+            display: inline; /* Display forms inline */
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease; /* Smooth transition for background color */
+        }
+        .btn-update {
+            background-color: #28a745; /* Green background color for update button */
+            color: white; /* White text color */
+        }
+        .btn-update:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+        .btn-delete {
+            background-color: #dc3545; /* Red background color for delete button */
+            color: white; /* White text color */
+        }
+        .btn-delete:hover {
+            background-color: #c82333; /* Darker red on hover */
+        }
+        .btn-add {
+            background-color: #007bff; /* Blue background color for add button */
+            color: white; /* White text color */
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth transition for background color */
+        }
+        .btn-add:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        .form-container {
+            display: none; /* Initially hide form container */
+            margin-top: 20px; /* Space above form */
+        }
+        .form-container.active {
+            display: block; /* Show form container when active */
+        }
+        .form-group {
+            margin-bottom: 10px;
+            text-align: left; /* Left align form labels */
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            padding: 8px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .form-group input:valid {
+            border-color: green; /* Green border color for valid input */
+        }
+        .form-group input:invalid {
+            border-color: red; /* Red border color for invalid input */
+        }
+        .form-group .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Employee Management System</h1>
+    </header>
+    <div class="content">
+        <h2>
+            Employee List
+            <button id="addEmployeeBtn" class="btn-add">Add Employee</button>
+        </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Salary</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for(let employee of employees) { %>
+                    <tr>
+                        <td><%= employee.empid %></td>
+                        <td><%= employee.empname %></td>
+                        <td>&#8377; <%= employee.salary.toLocaleString() %></td> <!-- Indian Rupee sign -->
+                        <td><%= employee.status %></td>
+                        <td>
+                            <form action="/employee/update/<%= employee.empid %>" method="GET">
+                                <button type="submit" class="btn-update">Update</button>
+                            </form>
+                            <form action="/employee/delete/<%= employee.empid %>" method="POST" onsubmit="return confirm('Are you sure to remove employee <%= employee.empname %> ?');">
+                                <button type="submit" class="btn-delete">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    <footer>
+        <p>&copy; 2024 Employee Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+
+            addEmployeeBtn.addEventListener('click', function() {
+                // Using window.prompt to get employee data
+                const empname = prompt('Enter employee name:');
+                const salary = prompt('Enter employee salary:');
+                const status = prompt('Enter employee status (free, learning, work):');
+
+                // Assuming you will POST this data to the backend for processing
+                if (empname && salary && status) {
+                    const formData = {
+                        empname: empname,
+                        salary: parseFloat(salary),
+                        status: status
+                    };
+
+                    // POST request to your Sails.js backend
+                    fetch('/employee/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Employee added successfully!');
+                        location.reload(); // Reload the page to see the updated list
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while adding employee.');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
